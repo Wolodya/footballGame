@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+
+    <style>
+        body {
+            background-color: #dddddd;
+            margin: 10px;
+        }
+
+        #canvas {
+            background-color: white;
+        }
+
+
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+
+<body>
+<div id="main" class="container">
+<div id="ctrl" class="btn-group">
+    <button id="create_t" type="button" class="btn btn-primary">Create tournament</button>
+    <button id="create" type="button" class="btn btn-primary">Create game</button>
+    <button id="join" type="button" class="btn btn-primary">Join game</button>
+    <button id="leave" type="button" class="btn btn-primary">Leave game</button>
+    <label for="name">input your name</label>
+    <input id="name" title="name" class="form-control" type="text">
+    <input id="game" title="room id" class="form-control" type="text">
+</div>
+</div>
+</div>
+<div id="cn" class="container">
+    <canvas id="canvas" width="700" height="500"></canvas>
+</div>
+
+<div id="out"></div>
+</body>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="/static/game.js"></script>
+</html>
