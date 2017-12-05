@@ -1,6 +1,10 @@
 let socket = io();
 window.game = 0;
 window.win = false;
+window.tournament = false;
+window.round = 0;
+
+$('#leave').hide();
 //graphics
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
@@ -18,31 +22,73 @@ initGame();
 
 //create a new player and join it to a new room
 $('#create').click(function () {
-    let name = $('#name').val();
+    let name = $('#nameCreate').val();
     socket.emit('create', name);
+
+});
+//create tournamnent
+$('#create_tournament').click(function () {
+    let name = $('#nameTournament').val();
+    socket.emit('create', name);
+    window.tournament = true;
 });
 
 //leave current room and create new
 $('#leave').click(function () {
-    //let name = $('#name').val();
+
     console.log('you left the room. Create or join a new one');
-    //  socket.leave(window.game);
-    // let name = $('#name').val();
+
     socket.emit('leave_room');
-    //window.win = true;
+    showAllButtons();
+
     window.game = 0;
 });
+
+function showAllButtons() {
+    $('#leave').hide();
+    $('#create').show();
+    $('#create_game_modal').show();
+    $('#join').show();
+    $('#join_game_modal').show();
+    $('#create_tournament').show();
+    $('#create_tournament_modal').show();
+}
+
+function hideAllButtonsJoin() {
+    $('#leave').show();
+    $('#join').hide();
+    $('#join_game_modal').hide();
+    $('#create_game_modal').hide();
+    $('#create_tournament_modal').hide();
+}
+
+function hideAllButtonsCreate() {
+    $('#leave').show();
+    $('#join').hide();
+    $('#join_game_modal').hide();
+    $('#create_game_modal').hide();
+    $('#create').hide();
+    $('#create_tournament_modal').hide();
+    $('#create_tournament').hide();
+}
 
 
 //join a player by id in input
 $('#join').click(function () {
-    let gameid = $('#game').val();
-    let name = $('#name').val();
+    let gameid = $('#id_room_join').val();
+    let name = $('#nameJoin').val();
+    hideAllButtonsJoin();
     socket.emit('join', gameid, name);
+    window.tournament=true;
+
 });
 //notify room that game started
 socket.on('new_game', function (gameid, id) {
+    $('#id_room').val(gameid);
+    $('#id_room_tour').val(gameid);
     console.log("room " + gameid + "player " + id + ". game_started");
+
+    hideAllButtonsCreate();
 
 });
 
@@ -60,23 +106,22 @@ socket.on('full', function (text) {
 socket.on('start', function (gameid, players) {
     console.log('game started');
     window.game = gameid;
-    //  game = gameid;
-    //
+
     renderPlayers(gameid, players);
 });
 //end game when one of players leave
 socket.on('leave', function () {
     console.log("you win!");
     window.game = 0;
+    window.tournament=false;
+    $('#p1').text("");
+    $('#p2').text("");
 });
-
-
 socket.on('forbid_create', function (message) {
 
     console.log(message);
 
 });
-
 
 function initGame() {
 
@@ -93,12 +138,12 @@ socket.on('winner', function (players, gameid, id) {
     window.game = 0;
     //socket.emit('disconnect');
 });
-
-
+socket.on('winner_round',function (players, gameid, id) {
+    console.log(players[gameid][id].name + " win round!!Score: " + players[gameid][id].score);
+});
 socket.on('state', function (players) {
     clear();
     initGame();
-
     if (window.game !== 0) {
 
         //change velocity on wasd press
@@ -114,13 +159,18 @@ socket.on('state', function (players) {
         //move ball
         socket.emit('b_move', window.game);
         //check winner
-        socket.emit('win', window.game);
+        if (window.tournament === true) {
+            socket.emit('win_tournament', window.game);
+            console.log('1 round');
+        } else {
+            socket.emit('win', window.game);
+        }
+
         //render all in room
         renderPlayers(window.game, players);
     }
 //1000000$ per dAY /0
 });
-
 
 function renderField() {
     context.save();
@@ -174,7 +224,13 @@ function renderPlayers(gameid, players) {
 
     context.restore();
     var keys = Object.keys(players[gameid]);
-    out.innerHTML = "Player " + players[gameid][keys[0]].name + "  Score: " + players[gameid][keys[0]].score + "<br>Player " + players[gameid][keys[1]].name + " Score: " + players[gameid][keys[1]].score;
+    if (window.tournament) {
+        //show round
+    }
+    $('#p1').text("Player " + players[gameid][keys[0]].name + "  Score: " + players[gameid][keys[0]].score);
+    $('#p2').text("Player " + players[gameid][keys[1]].name + " Score: " + players[gameid][keys[1]].score);
+
+    // out.innerHTML = "Player " + players[gameid][keys[0]].name + "  Score: " + players[gameid][keys[0]].score + "<br>Player " + players[gameid][keys[1]].name + " Score: " + players[gameid][keys[1]].score;
 }
 
 function checkWin(players, gameid) {
@@ -225,3 +281,7 @@ document.addEventListener("keyup", function (event) {
             break;
     }
 });
+
+function showButton() {
+    $('leave').css('display', 'block');
+}

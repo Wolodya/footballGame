@@ -90,7 +90,8 @@ io.on("connection", function (socket) {
             } else {
                 players[gameid][id].yVel = -players[gameid][id].maxSpeed;
             }
-        } else {
+         }
+            else {
             if (players[gameid][id].yVel < 0) {
                 players[gameid][id].yVel += players[gameid][id].decel;
                 if (players[gameid][id].yVel > 0) players[gameid][id].yVel = 0;
@@ -232,7 +233,15 @@ io.on("connection", function (socket) {
 
         }
     });
+    socket.on('win_tournament',function (gameid,round) {
+        if (players[gameid][socket.id].score === 5) {
+            players[gameid][socket.id].win_rounds=1+ players[gameid][socket.id].win_rounds;
+            console.log( players[gameid][socket.id].win_rounds);
+            io.to(gameid).emit('winner_round', players, gameid, socket.id);
+            //   socket.broadcast.to(gameid).emit('looser',players,gameid,socket.id);
 
+        }
+    })
 
 });
 
@@ -254,6 +263,7 @@ function Player(x, y, color, name) {
     this.decel = 0.55;
     this.maxSpeed = 3;
     this.name = name;
+    this.win_rounds=0;
 }
 
 function Ball(x, y, color) {
