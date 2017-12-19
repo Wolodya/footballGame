@@ -2,23 +2,55 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const events = require("events");
-
+const session  = require('express-session');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+var passport = require('passport');
+var flash    = require('connect-flash');
 var socket = require("socket.io");
 
 var app = express();
+
+//app config=====================================================
+require('./config/passport')(passport); // pass passport for configuration
+// set up express application
+app.use(morgan('dev')); // log every request to the console
+app.use(cookieParser()); // read cookies (needed for auth)
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(bodyParser.json());
+
+app.set('view engine', 'ejs'); // set up ejs for templating
+
+// required for passport
+app.use(session({
+    secret: 'vidyapathaisalwaysrunning',
+    resave: true,
+    saveUninitialized: true
+} )); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash()); // use connect-flash for flash messages stored in session
+//===================================================
+
+// routes ======================================================================
+require('./app/routes.js')(app, passport);
+
+// launch ======================================================================
+
 var server = http.createServer(app).listen(8080);
 var io = socket.listen(server);
 app.use("/static", express.static(__dirname + "/static"));
-app.get("/", function (req, res) {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
+
 
 let players = {};
 
 io.on("connection", function (socket) {
 
 
-    socket.on('create', function (name) {
+    socket.on('create', function (name, tournament) {
 
         let gameid = (Math.random() * 100000 ) | 0;
         console.log(players);
@@ -26,7 +58,7 @@ io.on("connection", function (socket) {
         //create player
         players[gameid] = {};
         players[gameid][socket.id] = new Player(100, 250, "red", name);
-
+        players[gameid].tournament = tournament;
         //join to room
         socket.join(gameid);
         socket.emit('new_game', gameid, socket.id);
@@ -40,6 +72,7 @@ io.on("connection", function (socket) {
 
             players[gameid][socket.id] = new Player(600, 250, "blue", name);
             players[gameid].ball = new Ball(350, 250, "black");
+
             //join second player after join btn pressed
             socket.room = gameid;
             socket.join(gameid);
@@ -53,7 +86,7 @@ io.on("connection", function (socket) {
         if (players[socket.room]) {
             socket.leave(socket.room);
 
-            if (Object.keys(players[socket.room]).length < 3) {
+            if (Object.keys(players[socket.room]).length - 1 < 3) {
                 delete players[socket.room];
             } else {
                 delete players[socket.room][socket.id];
@@ -71,7 +104,7 @@ io.on("connection", function (socket) {
 
         socket.leave(socket.room);
 
-        if (Object.keys(players[socket.room]).length < 3) {
+        if (Object.keys(players[socket.room]).length - 1 < 3) {
             delete players[socket.room];
         } else {
             delete players[socket.room][socket.id];
@@ -90,8 +123,8 @@ io.on("connection", function (socket) {
             } else {
                 players[gameid][id].yVel = -players[gameid][id].maxSpeed;
             }
-         }
-            else {
+        }
+        else {
             if (players[gameid][id].yVel < 0) {
                 players[gameid][id].yVel += players[gameid][id].decel;
                 if (players[gameid][id].yVel > 0) players[gameid][id].yVel = 0;
@@ -169,7 +202,7 @@ io.on("connection", function (socket) {
         }
         if (players[gameid].ball.x - players[gameid].ball.size < 0) {
             if (players[gameid].ball.y > 150 && players[gameid].ball.y < 350) {
-                players[gameid][keys[1]].score++;
+                players[gameid][keys[2]].score++;
                 reset(keys, players[gameid]);
                 return;
             }
@@ -193,9 +226,9 @@ io.on("connection", function (socket) {
         //check collision between players
         var keys = Object.keys(players[gameid]);
 
-        var p_distance = getDistance(players[gameid][keys[0]].x, players[gameid][keys[0]].y, players[gameid][keys[1]].x, players[gameid][keys[1]].y) - players[gameid][keys[0]].size - players[gameid][keys[1]].size;
+        var p_distance = getDistance(players[gameid][keys[0]].x, players[gameid][keys[0]].y, players[gameid][keys[2]].x, players[gameid][keys[2]].y) - players[gameid][keys[0]].size - players[gameid][keys[2]].size;
         if (p_distance < 0) {
-            collide(players[gameid][keys[0]], players[gameid][keys[1]]);
+            collide(players[gameid][keys[0]], players[gameid][keys[2]]);
         }
 
     });
@@ -233,15 +266,33 @@ io.on("connection", function (socket) {
 
         }
     });
-    socket.on('win_tournament',function (gameid,round) {
-        if (players[gameid][socket.id].score === 5) {
-            players[gameid][socket.id].win_rounds=1+ players[gameid][socket.id].win_rounds;
-            console.log( players[gameid][socket.id].win_rounds);
-            io.to(gameid).emit('winner_round', players, gameid, socket.id);
-            //   socket.broadcast.to(gameid).emit('looser',players,gameid,socket.id);
+    socket.on('win_tournament', function (gameid, round) {
+        var keys = Object.keys(players[gameid]);
+        if (players[gameid][socket.id].score === 2) {
+
+            players[gameid][socket.id].win_rounds = 1 + players[gameid][socket.id].win_rounds;
+            players[gameid][keys[0]].score = 0;
+            players[gameid][keys[2]].score = 0;
+
+            if (round == 3) {
+                if(players[gameid][keys[0]].win_rounds>players[gameid][keys[2]].win_rounds)
+                {
+                    io.to(gameid).emit('winner', players, gameid, keys[0]);
+                }else   {
+                    io.to(gameid).emit('winner', players, gameid, keys[2]);
+                }
+
+
+
+            } else {
+                io.to(gameid).emit('winner_round', players, gameid, socket.id);
+            }
+                //   socket.broadcast.to(gameid).emit('looser',players,gameid,socket.id);
+
+            }
 
         }
-    })
+    )
 
 });
 
@@ -263,7 +314,7 @@ function Player(x, y, color, name) {
     this.decel = 0.55;
     this.maxSpeed = 3;
     this.name = name;
-    this.win_rounds=0;
+    this.win_rounds = 1;
 }
 
 function Ball(x, y, color) {
@@ -293,14 +344,22 @@ function getDistance(x1, y1, x2, y2) {
 
 function reset(keys, players) {
 
+
     let name1 = players[keys[0]].name;
     let sc1 = players[keys[0]].score;
+    let win_rounds = players[keys[0]].win_rounds;
     players[keys[0]] = new Player(100, 250, "red", name1);
     players[keys[0]].score = sc1;
-    let name2 = players[keys[1]].name;
-    let sc2 = players[keys[1]].score;
-    players[keys[1]] = new Player(600, 250, "blue", name2);
-    players[keys[1]].score = sc2;
+    players[keys[0]].win_rounds = win_rounds;
+
+    let name2 = players[keys[2]].name;
+    let sc2 = players[keys[2]].score;
+    let win_rounds2 = players[keys[2]].win_rounds;
+    players[keys[2]] = new Player(600, 250, "blue", name2);
+    players[keys[2]].score = sc2;
+    players[keys[2]].win_rounds = win_rounds2;
+
     players.ball = new Ball(350, 250, "black");
 }
+
 
