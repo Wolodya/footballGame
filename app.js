@@ -14,6 +14,8 @@ var app = express();
 
 //app config=====================================================
 require('./config/passport')(passport); // pass passport for configuration
+var s=require('./config/records');
+
 // set up express application
 app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
