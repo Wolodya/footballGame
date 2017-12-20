@@ -41,9 +41,10 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 require('./app/routes.js')(app, passport);
 
 // launch ======================================================================
-var port = process.env.PORT || 8000;
-var server = http.createServer(app).listen(port);
+var port = process.env.PORT || 3000;
+var server = http.createServer(app);
 var io = socket.listen(server);
+server.listen(port);
 app.use("/static", express.static(__dirname + "/static"));
 
 
