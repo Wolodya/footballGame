@@ -122,6 +122,15 @@ function initGame() {
 
 socket.on('winner', function (players, gameid, id) {
     alert(players[gameid][id].name + " win!!");
+
+    // $.ajax({
+    //     type: 'POST',
+    //     data:{win:true,tournament:false},
+    //     url:'/savewin',
+    //     success:function (data) {
+    //         console.log("ok");
+    //     }
+    // });
     window.game = 0;
     window.tournament = false;
     console.log(players[gameid][id].name + " win!!Score: " + players[gameid][id].score);
@@ -267,6 +276,3 @@ document.addEventListener("keyup", function (event) {
     }
 });
 
-function showButton() {
-    $('leave').css('display', 'block');
-}

@@ -14,7 +14,7 @@ var app = express();
 
 //app config=====================================================
 require('./config/passport')(passport); // pass passport for configuration
-var s=require('./config/records');
+var scores=require('./config/records');
 
 // set up express application
 app.use(morgan('dev')); // log every request to the console
@@ -263,7 +263,11 @@ io.on("connection", function (socket) {
     });
     socket.on('win', function (gameid) {
         if (players[gameid][socket.id].score === 2) {
+
             io.to(gameid).emit('winner', players, gameid, socket.id);
+            var ususer;
+            scores.save(req.user.id,true,false);
+
             //   socket.broadcast.to(gameid).emit('looser',players,gameid,socket.id);
 
         }

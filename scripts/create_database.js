@@ -18,7 +18,16 @@ CREATE TABLE `' + dbconfig.database + '`.`' + dbconfig.users_table + '` ( \
     UNIQUE INDEX `id_UNIQUE` (`id` ASC), \
     UNIQUE INDEX `username_UNIQUE` (`username` ASC) \
 )');
+connection.query('\
+CREATE TABLE `' + dbconfig.database + '`.`' + dbconfig.scores_table + '` ( \
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, \
+    `user_id` INT NULL, \
+    `win` INT NULL, \
+    `tournament` TINYINT NULL, \
+    `date` DATETIME NULL, \
+        PRIMARY KEY (`id`) \
+)');
 
-console.log('Success: Database Created!')
+console.log('Success: Database Created!');
 
 connection.end();

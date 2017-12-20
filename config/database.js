@@ -6,5 +6,6 @@ module.exports = {
         'password': 'root123'
     },
 	'database': 'football',
-    'users_table': 'users'
+    'users_table': 'users',
+    'scores_table':'scores'
 };

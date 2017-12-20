@@ -41,19 +41,21 @@
         <div class="row">
             <div class="col-sm-6">
                 <form class='form-inline'>
-                    <button type="button" class="btn btn-info btn-lg" id="create_game_modal" data-toggle="modal"
+                    <button type="button" class="btn btn-info btn-md" id="create_game_modal" data-toggle="modal"
                             data-target="#modalCreate">Create
                         game
                     </button>
                     <input id="is_tournament" type="checkbox" class="form-check-input">
                     <label id="check" for="is_tournament">Create tournament</label>
 
-                    <button type="button" class="btn btn-info btn-lg" id="join_game_modal" data-toggle="modal"
+                    <button type="button" class="btn btn-info btn-md" id="join_game_modal" data-toggle="modal"
                             data-target="#modalJoin">Join
                         game
                     </button>
                     <!--<button id="join" type="button" class="btn btn-primary">Join game</button>-->
-                    <button id="leave" type="button" class="btn btn-info btn-lg">Leave game</button>
+                    <button id="leave" type="button" class="btn btn-info btn-md">Leave game</button>
+                    <a class = "btn btn-default btn-md" href = "/logout" role = "button">Logout</a>
+                    <a class = "btn btn-default btn-md" href = "/profile" role = "button">Profile</a>
                 </form>
             </div>
             <div id="out" class="col-sm-3">

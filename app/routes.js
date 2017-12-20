@@ -44,6 +44,7 @@ module.exports = function(app, passport) {
 		res.render('signup.ejs', { message: req.flash('signupMessage') });
 	});
 
+
 	// process the signup form
 	app.post('/signup', passport.authenticate('local-signup', {
 		successRedirect : '/game', // redirect to the secure profile section
@@ -51,17 +52,25 @@ module.exports = function(app, passport) {
 		failureFlash : true // allow flash messages
 	}));
 
+
+	//save results
+	// app.post('/savewin',isLoggedIn ,function(req,res) {
+     //    scores.save(req.user.id,req.body.win,req.body.tournament);
+    //
+    // });
+
 	// =====================================
 	// PROFILE SECTION =========================
 	// =====================================
 	// we will want this protected so you have to be logged in to visit
 	// we will use route middleware to verify this (the isLoggedIn function)
-	// app.get('/game', isLoggedIn, function(req, res) {
-	// 	res.render('profile.ejs', {
-	// 		user : req.user // get the user out of session and pass to template
-	// 	});
-	// });
+	app.get('/profile', isLoggedIn, function(req, res) {
+		res.render('profile.ejs', {
+			user : req.user // get the user out of session and pass to template
+		});
+	});
     app.get("/game",isLoggedIn, function (req, res) {
+
       //  res.sendFile(path.join(__dirname, "index.html"));
 		res.render('game.ejs');
     });

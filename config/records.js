@@ -1,13 +1,14 @@
-var dbconfig = require('.config/database.js');
+var dbconfig = require('./database');
+var mysql = require('mysql');
 var connection = mysql.createConnection(dbconfig.connection);
 
 connection.query('USE ' + dbconfig.database);
 
-exports.save=function (id,is_win,is_tournamanet,done){
-    var values=[id,score,new Date().toISOString()];
+exports.save=function (user_id,win,tournamanet){
+    var values=[user_id,win,tournamanet,new Date()];
 
-    connection.query('INSERT INTO results(user_id,win,tournament,date) VALUES(?,?,?,?)',values,function (err,result) {
+    connection.query('INSERT INTO scores(user_id,win,tournament,date) VALUES(?,?,?,?)',values,function (err,result) {
         if (err) throw err;
-        done(null, result.insertId);
+
     });
 };
