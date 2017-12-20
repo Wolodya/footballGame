@@ -42,7 +42,7 @@ require('./app/routes.js')(app, passport);
 
 // launch ======================================================================
 
-var server = http.createServer(app).listen(8080);
+var server = http.createServer(app).listen(process.env.PORT||8080);
 var io = socket.listen(server);
 app.use("/static", express.static(__dirname + "/static"));
 
